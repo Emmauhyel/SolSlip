@@ -17,7 +17,7 @@
 <meta name="twitter:creator" content="@solslip" />
 
 <!-- PWA Manifest -->
-<link rel="manifest" href="/manifest.json" />
+<link rel="manifest" href="main/manifest.json" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SolSlip" />
@@ -226,9 +226,11 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <!-- ============ SCRIPTS (order matters: solana → effects → receipt → app) ============ -->
-<script src="main/solana.js"></script>
-<script src="main/effects-2.js"></script>
-<script src="main/receipt.js"></script>
-<script src="main/app.js"></script>
+<script>
+  <link href="main/solana.js"/>
+<link href="main/effects-2.js">
+<link href="main/receipt.js">
+<link href="main/app.js"> 
+</script>
 </body>
 </html>
