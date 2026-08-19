@@ -1,0 +1,541 @@
+/* =========================================================================
+   SolSlip — styles.css
+   Design tokens:
+     bg-deep     #0B0E14   base backdrop
+     bg-deep-2   #0f172a   secondary backdrop / cards
+     solana-purple #9945FF
+     solana-green  #14F195
+     solana-magenta #FF3EA5
+     paper       #F5F5F0   thermal receipt stock
+     ink         #1E2022   thermal receipt ink
+   ========================================================================= */
+
+:root {
+  --bg-deep: #0B0E14;
+  --bg-deep-2: #0f172a;
+  --solana-purple: #9945FF;
+  --solana-green: #14F195;
+  --solana-magenta: #FF3EA5;
+  --paper: #F5F5F0;
+  --ink: #1E2022;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg-deep);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+.font-display { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+.font-mono { font-family: 'Space Mono', 'Courier Prime', ui-monospace, monospace; }
+
+/* Tailwind color utility hooks used inline in index.html */
+.text-solana-green { color: var(--solana-green); }
+.text-solana-purple { color: var(--solana-purple); }
+.text-slip-dim { color: #94a3b8; }
+.border-solana-purple\/60 { border-color: rgba(153,69,255,.6); }
+.border-solana-green\/50 { border-color: rgba(20,241,149,.5); }
+.ring-solana-purple\/20 { --tw-ring-color: rgba(153,69,255,.2); }
+
+/* =========================================================================
+   AMBIENT BACKGROUND — grid + glows
+   ========================================================================= */
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(rgba(153, 69, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(153, 69, 255, 0.07) 1px, transparent 1px);
+  background-size: 42px 42px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 90%);
+  animation: grid-drift 40s linear infinite;
+}
+
+@keyframes grid-drift {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 84px 84px, 84px 84px; }
+}
+
+.bg-glow {
+  position: fixed;
+  z-index: 0;
+  width: 46vw;
+  height: 46vw;
+  max-width: 620px;
+  max-height: 620px;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.28;
+  pointer-events: none;
+}
+.bg-glow--purple { top: -12%; left: -10%; background: var(--solana-purple); animation: float-a 22s ease-in-out infinite; }
+.bg-glow--green { bottom: -16%; right: -8%; background: var(--solana-green); opacity: 0.22; animation: float-b 26s ease-in-out infinite; }
+.bg-glow--magenta { top: 30%; right: 18%; width: 30vw; height: 30vw; background: var(--solana-magenta); opacity: 0.16; animation: float-a 30s ease-in-out infinite reverse; }
+
+@keyframes float-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(3%, 4%) scale(1.08); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-4%, -3%) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-grid, .bg-glow { animation: none !important; }
+}
+
+/* =========================================================================
+   LOGO MARK
+   ========================================================================= */
+
+.logo-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--solana-purple), var(--solana-green));
+  box-shadow: 0 0 24px rgba(153, 69, 255, 0.45);
+}
+.logo-mark__glyph {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  color: #0B0E14;
+  font-size: 18px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--solana-green);
+  box-shadow: 0 0 8px var(--solana-green);
+}
+
+/* =========================================================================
+   GLASSMORPHIC CARDS
+   ========================================================================= */
+
+.glass-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+}
+
+.empty-state__icon {
+  font-size: 34px;
+  filter: grayscale(0.2) drop-shadow(0 0 12px rgba(153,69,255,0.3));
+}
+
+/* =========================================================================
+   BUTTONS
+   ========================================================================= */
+
+.btn-neon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #06110d;
+  background: linear-gradient(120deg, var(--solana-green), #7CFFC4);
+  box-shadow: 0 0 0 rgba(20,241,149,0), 0 4px 20px rgba(20,241,149,0.25);
+  transition: transform 0.15s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+  border: none;
+}
+.btn-neon:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(20,241,149,0.55), 0 6px 24px rgba(20,241,149,0.3);
+}
+.btn-neon:active { transform: translateY(0); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: rgba(153, 69, 255, 0.1);
+  border: 1px solid rgba(153, 69, 255, 0.35);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.btn-ghost:hover {
+  background: rgba(153, 69, 255, 0.2);
+  border-color: rgba(153, 69, 255, 0.6);
+  box-shadow: 0 0 18px rgba(153, 69, 255, 0.25);
+}
+
+/* =========================================================================
+   THE RECEIPT — the signature element
+   ========================================================================= */
+
+.receipt-wrap {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  justify-content: center;
+  animation: receipt-drop 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes receipt-drop {
+  from { opacity: 0; transform: translateY(-18px) rotate(-1deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+.receipt {
+  position: relative;
+  width: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  filter: drop-shadow(0 22px 40px rgba(0,0,0,0.55)) drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+  transform: rotate(-0.6deg);
+}
+
+/* Subtle thermal-paper crease + noise texture, layered via background */
+.receipt__body {
+  position: relative;
+  padding: 30px 22px 26px;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, transparent 1px, transparent 3px),
+    linear-gradient(100deg, rgba(0,0,0,0.03) 0%, transparent 18%, transparent 82%, rgba(0,0,0,0.04) 100%),
+    radial-gradient(circle at 15% 8%, rgba(0,0,0,0.05), transparent 40%),
+    radial-gradient(circle at 85% 92%, rgba(0,0,0,0.05), transparent 40%);
+}
+
+/* Faint fold line, like the slip was tri-folded in a wallet */
+.receipt__body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 48%, rgba(0,0,0,0.05) 50%, transparent 52%);
+  pointer-events: none;
+}
+
+.receipt__edge {
+  height: 14px;
+  width: 100%;
+  background: var(--paper);
+}
+.receipt__edge--top {
+  clip-path: polygon(
+    0% 100%, 4% 0%, 8% 100%, 12% 0%, 16% 100%, 20% 0%, 24% 100%, 28% 0%,
+    32% 100%, 36% 0%, 40% 100%, 44% 0%, 48% 100%, 52% 0%, 56% 100%, 60% 0%,
+    64% 100%, 68% 0%, 72% 100%, 76% 0%, 80% 100%, 84% 0%, 88% 100%, 92% 0%,
+    96% 100%, 100% 0%, 100% 100%, 0% 100%
+  );
+}
+.receipt__edge--bottom {
+  clip-path: polygon(
+    0% 0%, 4% 100%, 8% 0%, 12% 100%, 16% 0%, 20% 100%, 24% 0%, 28% 100%,
+    32% 0%, 36% 100%, 40% 0%, 44% 100%, 48% 0%, 52% 100%, 56% 0%, 60% 100%,
+    64% 0%, 68% 100%, 72% 0%, 76% 100%, 80% 0%, 84% 100%, 88% 0%, 92% 100%,
+    96% 0%, 100% 100%, 100% 0%, 0% 0%
+  );
+}
+
+.receipt__header { text-align: center; }
+.receipt__brand {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.03em;
+}
+.receipt__sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  margin-top: 3px;
+  opacity: 0.75;
+}
+
+.receipt__hr {
+  border: none;
+  border-top: 1.5px solid rgba(30,32,34,0.35);
+  margin: 12px 0;
+}
+.receipt__hr--dashed {
+  border-top-style: dashed;
+  border-top-width: 1.5px;
+  opacity: 0.55;
+}
+
+.receipt__meta {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 10.5px;
+}
+.receipt__meta div { display: flex; justify-content: space-between; gap: 6px; }
+.receipt__meta dt { opacity: 0.6; }
+.receipt__meta dd { font-weight: 700; text-align: right; word-break: break-all; }
+
+.receipt__section-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+
+.receipt__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+}
+.receipt__table th {
+  text-align: left;
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1.5px dashed rgba(30,32,34,0.4);
+  opacity: 0.7;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+.receipt__table th:not(:first-child), .receipt__table td:not(:first-child) { text-align: right; }
+.receipt__table td {
+  padding: 6px 0;
+  border-bottom: 1px dotted rgba(30,32,34,0.25);
+  vertical-align: top;
+}
+.receipt__table td:first-child { font-weight: 700; }
+.receipt__table .status-ok { color: #146b3a; }
+.receipt__table .status-fail { color: #8a1f1f; }
+.receipt__pair-sub { display: block; font-size: 8.5px; opacity: 0.6; font-weight: 400; }
+
+.receipt__totals {
+  font-family: 'Space Mono', monospace;
+  font-size: 10.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.receipt__totals div { display: flex; justify-content: space-between; gap: 10px; }
+.receipt__totals dt { opacity: 0.65; }
+.receipt__totals dd { font-weight: 700; }
+.receipt__totals-highlight {
+  margin-top: 4px;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(30,32,34,0.4);
+}
+.receipt__totals-highlight dd { color: #146b3a; font-weight: 700; }
+
+.receipt__footer { text-align: center; margin-top: 4px; }
+
+.receipt__qr {
+  width: 64px;
+  height: 64px;
+  margin: 4px auto 10px;
+  border-radius: 2px;
+  /* Deterministic-looking placeholder QR pattern via layered gradients */
+  background-image:
+    repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 6px),
+    repeating-linear-gradient(0deg, var(--ink) 0 3px, transparent 3px 6px);
+  background-blend-mode: multiply;
+  background-color: var(--paper);
+  opacity: 0.88;
+  outline: 3px solid var(--paper);
+  outline-offset: -3px;
+}
+
+.receipt__thanks {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+.receipt__thanks-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 8.5px;
+  opacity: 0.55;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.receipt__barcode {
+  height: 34px;
+  margin: 14px auto 6px;
+  width: 84%;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0px, var(--ink) 2px,
+    transparent 2px, transparent 3px,
+    var(--ink) 3px, var(--ink) 4px,
+    transparent 4px, transparent 7px,
+    var(--ink) 7px, var(--ink) 9px,
+    transparent 9px, transparent 11px
+  );
+  opacity: 0.85;
+}
+
+.receipt__id {
+  font-family: 'Space Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  word-break: break-all;
+  padding: 0 8px;
+}
+
+.receipt__watermark {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  opacity: 0.4;
+  margin-top: 8px;
+}
+
+/* =========================================================================
+   FLOATING ACTION CONTROLS
+   ========================================================================= */
+
+.fab-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  animation: fab-rise 0.4s ease;
+}
+
+@keyframes fab-rise {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.fab-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.fab-btn svg { width: 18px; height: 18px; }
+.fab-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+  border-color: rgba(153,69,255,0.5);
+}
+.fab-btn--accent {
+  background: linear-gradient(135deg, var(--solana-purple), var(--solana-magenta));
+  border-color: transparent;
+  color: white;
+}
+.fab-btn--accent:hover {
+  box-shadow: 0 0 20px rgba(255, 62, 165, 0.5);
+}
+
+/* Smaller header-inline variant, used by the mute toggle */
+.fab-btn--inline {
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.05);
+}
+.fab-btn--inline svg { width: 15px; height: 15px; }
+.fab-btn--inline[aria-pressed="true"] {
+  border-color: rgba(255, 62, 165, 0.5);
+  color: var(--solana-magenta);
+}
+
+/* =========================================================================
+   TOAST
+   ========================================================================= */
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translate(-50%, -140%);
+  z-index: 60;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(20, 241, 149, 0.4);
+  color: #ecfdf5;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.toast.is-visible {
+  transform: translate(-50%, 0);
+}
+
+/* =========================================================================
+   EXPORT / PRINT OPTIMIZATIONS
+   ========================================================================= */
+
+/* Applied to <body> while html2canvas captures, so only the paper renders
+   crisp — glassmorphism/blur can rasterize inconsistently across browsers. */
+.is-exporting .receipt {
+  filter: none !important;
+}
+.is-exporting .receipt-wrap {
+  animation: none !important;
+}
+
+@media print {
+  .bg-grid, .bg-glow, header, .glass-card, .fab-controls, footer, .toast { display: none !important; }
+  body { background: white !important; }
+  #receipt-wrap { display: flex !important; }
+  .receipt {
+    filter: none !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 420px) {
+  .receipt-wrap { max-width: 92vw; }
+  .fab-controls { bottom: 16px; }
+}
+
+/* Visible keyboard focus throughout */
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--solana-green);
+  outline-offset: 2px;
+}
