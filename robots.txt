@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Disallow crawling of temporary/demo content if any
+Disallow: /.env
+
+# Sitemap
+Sitemap: https://solslip.app/sitemap.xml

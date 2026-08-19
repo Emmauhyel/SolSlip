@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SolSlip — Your On-Chain Swaps, Printed on Paper.</title>
+<meta name="description" content="SolSlip turns your Solana swap history from Jupiter, Raydium, and Pump.fun into a retro thermal trade receipt, ready to flex on X." />
+<meta name="theme-color" content="#9945FF" />
+<meta name="keywords" content="Solana, swaps, Jupiter, Raydium, Pump.fun, receipts, NFT, web3" />
+
+<!-- Open Graph (Twitter/X, Discord, Facebook) -->
+<meta property="og:title" content="SolSlip — Your On-Chain Swaps, Printed on Paper." />
+<meta property="og:description" content="Turn your Solana swap history into a retro thermal receipt. Download, copy, or share your trades on X." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://solslip.app" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:creator" content="@solslip" />
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="SolSlip" />
+
+<!-- ============ CDN DEPENDENCIES ============ -->
+<!-- Tailwind (utility classes for layout/spacing; visual identity itself lives in styles.css) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Google Fonts: Space Mono (receipt/terminal voice) + Inter (UI voice) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<!-- Solana web3.js — used by js/solana.js to talk to public RPC -->
+<script src="https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js"></script>
+<!-- html2canvas — used by js/receipt.js to rasterize the receipt as a PNG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Our own stylesheet, loaded after Tailwind so it can override -->
+<link rel="stylesheet" href="css/styles.css" />
+
+<!-- Environment config: set before scripts load -->
+<script>
+  window.SOLSLIP_CONFIG = {
+    heliusApiKey: '',  // Set to your Helius API key from https://dev.helius.xyz
+    shareUrl: 'https://solslip.app',  // Update to your deployment domain
+    rpcEndpoint: 'https://api.mainnet-beta.solana.com',  // Solana mainnet RPC
+  };
+</script>
+</head>
+
+<body class="min-h-screen text-white antialiased">
+
+<!-- Ambient glow layer — pure decoration, sits behind everything -->
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-glow bg-glow--purple" aria-hidden="true"></div>
+<div class="bg-glow bg-glow--green" aria-hidden="true"></div>
+<div class="bg-glow bg-glow--magenta" aria-hidden="true"></div>
+
+<div class="relative z-10 flex min-h-screen flex-col">
+
+  <!-- ============ HEADER ============ -->
+  <header class="w-full px-5 py-6 sm:px-10">
+    <div class="mx-auto flex max-w-6xl items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="logo-mark" aria-hidden="true">
+          <span class="logo-mark__glyph">$</span>
+        </div>
+        <div class="leading-tight">
+          <h1 class="font-display text-xl font-extrabold tracking-tight sm:text-2xl">SolSlip</h1>
+          <p class="font-mono text-[11px] uppercase tracking-[0.2em] text-slip-dim">Your On-Chain Swaps, Printed on Paper.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="mute-toggle" type="button" class="fab-btn fab-btn--inline" title="Mute print sound" aria-label="Mute print sound" aria-pressed="false">
+          <svg id="mute-icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="mute-icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+        <a href="https://github.com/yourusername/solslip" target="_blank" rel="noopener" class="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-xs text-slip-dim backdrop-blur transition hover:border-solana-green/50 hover:text-solana-green sm:flex">
+          <span class="status-dot" aria-hidden="true"></span> mainnet-live
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="flex-1 px-5 pb-16 sm:px-10">
+    <div class="mx-auto flex max-w-6xl flex-col gap-10">
+
+      <!-- ---------- WALLET SEARCH / DEMO BAR ---------- -->
+      <section class="glass-card mx-auto w-full max-w-2xl p-4 sm:p-5" aria-label="Load a wallet">
+        <form id="wallet-form" class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <label for="wallet-input" class="sr-only">Solana wallet address</label>
+          <div class="relative flex-1">
+            <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 font-mono text-xs text-slip-dim">◎</span>
+            <input
+              id="wallet-input"
+              name="wallet"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Paste a Solana wallet address…"
+              class="w-full rounded-xl border border-white/10 bg-black/30 py-3 pl-9 pr-3 font-mono text-sm text-white placeholder:text-slip-dim/70 outline-none transition focus:border-solana-purple/60 focus:ring-2 focus:ring-solana-purple/20"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button type="submit" id="print-btn" class="btn-neon flex-1 sm:flex-none">
+              Print Slip
+            </button>
+            <button type="button" id="demo-btn" class="btn-ghost flex-1 sm:flex-none">
+              Demo Wallet
+            </button>
+          </div>
+        </form>
+        <p id="wallet-error" class="mt-2 hidden font-mono text-xs text-rose-400" role="alert"></p>
+      </section>
+
+      <!-- ---------- LIVE RECEIPT VIEWPORT ---------- -->
+      <section class="flex flex-col items-center" aria-label="Trade receipt">
+
+        <!-- Empty state -->
+        <div id="empty-state" class="glass-card flex w-full max-w-md flex-col items-center gap-3 px-8 py-14 text-center">
+          <div class="empty-state__icon" aria-hidden="true">🧾</div>
+          <p class="font-display text-sm font-semibold text-white">No slip printed yet</p>
+          <p class="font-mono text-xs leading-relaxed text-slip-dim">Paste a wallet address or hit <span class="text-solana-green">Demo Wallet</span> to generate a thermal receipt of its recent swaps.</p>
+        </div>
+
+        <!-- The receipt itself. Hidden until populated by js/receipt.js -->
+        <div id="receipt-wrap" class="receipt-wrap hidden">
+          <div id="receipt" class="receipt">
+
+            <!-- Serrated top edge (pure CSS, see styles.css .receipt__edge) -->
+            <div class="receipt__edge receipt__edge--top" aria-hidden="true"></div>
+
+            <div class="receipt__body">
+
+              <!-- Header -->
+              <header class="receipt__header">
+                <p class="receipt__brand">✦ SOLSLIP // DEGEN TERMINAL #01 ✦</p>
+                <p class="receipt__sub">SOLANA MAINNET-BETA SETTLEMENT SLIP</p>
+                <div class="receipt__hr" aria-hidden="true"></div>
+                <dl class="receipt__meta">
+                  <div><dt>DATE</dt><dd id="r-date">—</dd></div>
+                  <div><dt>TIME</dt><dd id="r-time">—</dd></div>
+                  <div><dt>SLOT</dt><dd id="r-slot">—</dd></div>
+                  <div><dt>WALLET</dt><dd id="r-wallet">—</dd></div>
+                </dl>
+              </header>
+
+              <div class="receipt__hr receipt__hr--dashed" aria-hidden="true"></div>
+
+              <!-- Swap table -->
+              <section aria-label="Swaps">
+                <p class="receipt__section-title">ITEMIZED SWAPS</p>
+                <table class="receipt__table">
+                  <thead>
+                    <tr>
+                      <th scope="col">PAIR</th>
+                      <th scope="col">SOLD</th>
+                      <th scope="col">BOUGHT</th>
+                      <th scope="col">PX</th>
+                      <th scope="col">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="r-swap-rows">
+                    <!-- injected by receipt.js -->
+                  </tbody>
+                </table>
+              </section>
+
+              <div class="receipt__hr receipt__hr--dashed" aria-hidden="true"></div>
+
+              <!-- Network highlights -->
+              <section aria-label="Network highlights">
+                <p class="receipt__section-title">NETWORK HIGHLIGHTS</p>
+                <dl class="receipt__totals">
+                  <div><dt>TOTAL VOLUME SWAPPED</dt><dd id="r-volume">—</dd></div>
+                  <div><dt>TOTAL SOL GAS PAID</dt><dd id="r-gas-sol">—</dd></div>
+                  <div><dt>GAS PAID (LAMPORTS)</dt><dd id="r-gas-lamports">—</dd></div>
+                  <div class="receipt__totals-highlight"><dt>EST. GAS SAVED VS ETHEREUM</dt><dd id="r-gas-saved">—</dd></div>
+                </dl>
+              </section>
+
+              <div class="receipt__hr" aria-hidden="true"></div>
+
+              <!-- Footer -->
+              <footer class="receipt__footer">
+                <div class="receipt__qr" id="r-qr" aria-hidden="true"></div>
+                <p class="receipt__thanks">★ THANK YOU FOR TRADING ON SOLANA ★</p>
+                <p class="receipt__thanks-sub">no rugs were harmed in the making of this slip*</p>
+                <div class="receipt__barcode" id="r-barcode" aria-hidden="true"></div>
+                <p class="receipt__id" id="r-tx-id">TXN ID —</p>
+                <p class="receipt__watermark">POWERED BY SOLSLIP.APP</p>
+              </footer>
+
+            </div>
+
+            <!-- Serrated bottom edge -->
+            <div class="receipt__edge receipt__edge--bottom" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="px-5 pb-8 pt-2 text-center sm:px-10">
+    <p class="font-mono text-[11px] text-slip-dim/70">SolSlip is an independent public good · not affiliated with Jupiter, Raydium, or Pump.fun · always verify on-chain</p>
+  </footer>
+</div>
+
+<!-- ============ FLOATING ACTION CONTROLS ============ -->
+<div id="fab-controls" class="fab-controls hidden" role="toolbar" aria-label="Receipt actions">
+  <button id="download-btn" class="fab-btn" title="Download PNG" aria-label="Download PNG">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+  </button>
+  <button id="copy-btn" class="fab-btn" title="Copy image" aria-label="Copy image to clipboard">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  </button>
+  <button id="share-btn" class="fab-btn fab-btn--accent" title="Share to X" aria-label="Share to X">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+  </button>
+  <button id="reset-btn" class="fab-btn" title="Start over" aria-label="Start over">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+  </button>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ============ SCRIPTS (order matters: solana → effects → receipt → app) ============ -->
+<script src="js/solana.js"></script>
+<script src="js/effects-2.js"></script>
+<script src="js/receipt.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
